@@ -3,6 +3,9 @@
 
 name: CI-CD
 
+env:
+ BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
 on:
   push:
     branches: [ "main" ]
@@ -15,8 +18,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Get branch name
+      id: branch-name
+      uses: tj-actions/branch-names@v6
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js 18.12.0
       uses: actions/setup-node@v3
       with:
         node-version: '18.12.0'
@@ -24,9 +30,19 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test      
-    - name: Build Docker image
+    
+    - name: Build Docker image main
+      if: steps.branch-name.outputs.is_default == 'true'
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
       with:
         context: .
         push: false
-        tags: local
+        tags: latest
+    
+    - name: Build Docker image PR
+      if: steps.branch-name.outputs.is_default == 'false'
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: .
+        push: false
+        tags: ${{ steps.branch-name.outputs.current_branch }}
