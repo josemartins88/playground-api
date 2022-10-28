@@ -83,4 +83,13 @@ jobs:
           push: true
           tags: ${{steps.semvers.outputs.v_patch }}
           labels: ${{ steps.meta.outputs.labels }}
+          
+      - name: Rollback Release
+        if: failure()
+        uses: author/action-rollback@stable
+        with:
+          tag: ${{steps.semvers.outputs.v_patch }}
+          delete_orphan_tag: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
