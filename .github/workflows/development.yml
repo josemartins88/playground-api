@@ -27,7 +27,7 @@ jobs:
     - run: npm test      
     
   create_publish_docker:
-  
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
