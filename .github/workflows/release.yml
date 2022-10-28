@@ -8,22 +8,54 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js 18.12.0
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.12.0'
+        cache: 'npm'
+    
+    - run: npm ci
+    - run: npm test
+    
+  create_publish_docker:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
       contents: write
       packages: write
 
     steps:
       - name: 'Checkout source code'
-        uses: 'actions/checkout@v2'
-
-      - name:  'Automated Version Bump'
-        uses:  'phips28/gh-action-bump-version@master'
+        uses: 'actions/checkout@v3'
+      
+      - name: 'Get current tag'
+        id: currenttag
+        uses: WyriHaximus/github-action-get-previous-tag@v1
+        with:
+          fallback: 0.0.0
+      
+      - name: 'Get next version'
+        id: semvers
+        uses: WyriHaximus/github-action-next-semvers@v1
+        with:
+          version: ${{ steps.currenttag.outputs.tag }}
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          minor-wording:  'minor'
-          major-wording:  'major'
-          patch-wording:  'patch,fixes'
-          target-branch: 'main'
-          commit-message: 'CI: bumps version to {{version}} [skip ci]'
-
-          # ${{ steps.meta.outputs.newTag }}
+          tag_name: ${{ steps.semvers.outputs.v_patch }}
+          release_name: Release ${{ steps.semvers.outputs.v_patch }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: true
+      
