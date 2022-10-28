@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
 
     steps:
     - uses: actions/checkout@v3
@@ -27,8 +26,16 @@ jobs:
     - run: npm ci
     - run: npm test      
     
+  create_publish_docker:
+  
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
     - name: Log in to the Container registry
-      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      uses: docker/login-action@v2.1.0
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -43,7 +50,7 @@ jobs:
             type=ref,event=branch
     
     - name: Build and publish Docker image 
-      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      uses: docker/build-push-action@v3.2.0
       with:
         context: .
         push: true
