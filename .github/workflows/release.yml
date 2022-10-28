@@ -7,8 +7,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
+      - uses: actions/checkout@v3
+
       - name:  'Automated Version Bump'
         uses:  'phips28/gh-action-bump-version@master'
         env:
