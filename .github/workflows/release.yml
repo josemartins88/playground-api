@@ -10,7 +10,6 @@ jobs:
     permissions:
       contents: write
       packages: write
-      pull-requests: write
 
     steps:
       - name: 'Checkout source code'
@@ -19,7 +18,7 @@ jobs:
       - name:  'Automated Version Bump'
         uses:  'phips28/gh-action-bump-version@master'
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           minor-wording:  'minor'
           major-wording:  'major'
