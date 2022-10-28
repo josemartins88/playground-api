@@ -48,6 +48,11 @@ jobs:
       uses: docker/metadata-action@v4.1.1
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
     
     - name: Build Docker image main
       if: steps.branch-name.outputs.is_default == 'true'
