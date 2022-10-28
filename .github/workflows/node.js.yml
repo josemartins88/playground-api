@@ -54,16 +54,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
     
-    - name: Build Docker image main
-      if: steps.branch-name.outputs.is_default == 'true'
-      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-      with:
-        context: .
-        push: true
-        tags: latest
-    
     - name: Build Docker image PR
-      if: steps.branch-name.outputs.is_default == 'false'
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
       with:
         context: .
