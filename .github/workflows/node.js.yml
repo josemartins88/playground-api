@@ -49,10 +49,11 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
+          type=ref,event=branch
           type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
         flavor: |
-          prefix={{branch}}
-    
+          latest=true
     - name: Build Docker image main
       if: steps.branch-name.outputs.is_default == 'true'
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
