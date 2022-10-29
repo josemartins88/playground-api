@@ -69,7 +69,7 @@ jobs:
       contents: write
       packages: write
     env:
-      RELEASE_TAG: ${{ needs.create-release.outputs.release_tag }}
+      RELEASE_TAG: ${{ needs.create_release.outputs.release_tag }}
     steps:
       - name: 'Checkout source code'
         uses: 'actions/checkout@v3'
@@ -101,7 +101,7 @@ jobs:
   rollback_release:
    needs: [create_release, build_publish_docker]
    env:
-      RELEASE_TAG: ${{ needs.create-release.outputs.release_tag }}
+      RELEASE_TAG: ${{ needs.create_release.outputs.release_tag }}
    if: always()
    runs-on: ubuntu-latest
    permissions:
