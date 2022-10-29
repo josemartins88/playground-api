@@ -109,7 +109,7 @@ jobs:
      packages: write
    steps:
      - name: Rollback Release
-       if: (${{needs.create_release.result}} != 'success' || ${{needs.build_publish_docker.result}} != 'success')
+       if: ${{ needs.create_release.result != 'success' || needs.build_publish_docker.result != 'success'}}
        uses: author/action-rollback@1.0.0
        with:
          tag: ${{ env.RELEASE_TAG }}
