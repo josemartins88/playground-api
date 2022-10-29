@@ -102,7 +102,7 @@ jobs:
    needs: [create_release, build_publish_docker]
    env:
       RELEASE_TAG: ${{ needs.create_release.outputs.release_tag }}
-   if: $${ always() && needs.create_release.result != 'success' || needs.build_publish_docker.result != 'success'}}
+   if: ${{ always() && needs.create_release.result != 'success' || needs.build_publish_docker.result != 'success'}}
    runs-on: ubuntu-latest
    permissions:
      contents: write
