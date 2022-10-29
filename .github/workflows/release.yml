@@ -66,37 +66,35 @@ jobs:
     needs: create_release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      packages: write
+      contents: read
+      id-token: write
     env:
       RELEASE_TAG: ${{ needs.create_release.outputs.release_tag }}
+
     steps:
-      - name: 'Checkout source code'
-        uses: 'actions/checkout@v3'
-        
-      - name: Log in to the Container registry
-        uses: docker/login-action@v2.1.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v3
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v4.1.1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            ${{ env.RELEASE_TAG }}
+          role-to-assume: arn:aws:iam::800535513774:role/gh-actions-playground-api
+          aws-region: us-east-1
 
-      - name: Build and publish Docker image 
-        uses: docker/build-push-action@v3.2.0
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: playground-api
+          IMAGE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
           
   rollback_release:
    needs: [create_release, build_publish_docker]
