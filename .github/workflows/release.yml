@@ -102,14 +102,13 @@ jobs:
    needs: [create_release, build_publish_docker]
    env:
       RELEASE_TAG: ${{ needs.create_release.outputs.release_tag }}
-   if: always()
+   if: $${ always() && needs.create_release.result != 'success' || needs.build_publish_docker.result != 'success'}}
    runs-on: ubuntu-latest
    permissions:
      contents: write
      packages: write
    steps:
      - name: Rollback Release
-       if: ${{ needs.create_release.result != 'success' || needs.build_publish_docker.result != 'success'}}
        uses: author/action-rollback@1.0.0
        with:
          tag: ${{ env.RELEASE_TAG }}
