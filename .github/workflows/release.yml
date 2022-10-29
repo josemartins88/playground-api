@@ -36,16 +36,17 @@ jobs:
         uses: 'actions/checkout@v3'
       
       - name: 'Get current tag'
-        id: currenttag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        id: get-latest-tag
         with:
-          fallback: 0.0.0
-      
-      - name: 'Get next version'
-        id: semvers
-        uses: WyriHaximus/github-action-next-semvers@v1
+         semver_only: true
+         initial_version: v0.0.1
+         
+      - uses: actions-ecosystem/action-bump-semver@v1
+        id: bump-semver
         with:
-          version: ${{ steps.currenttag.outputs.tag }}
+          current_version: ${{ steps.get-latest-tag.outputs.tag }}
+          level: patch
 
       - name: Create Release
         id: create_release
@@ -53,12 +54,12 @@ jobs:
         with:
           branch: "main"
           prerelease: true
-          tag: ${{ steps.semvers.outputs.v_patch }}
+          tag: ${{ steps.bump-semver.outputs.new_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     outputs:
-      tag: ${{ steps.create_release.outputs.release_tag }}
+      release_tag: ${{ steps.create_release.outputs.release_tag }}
       
       
   build_publish_docker:
