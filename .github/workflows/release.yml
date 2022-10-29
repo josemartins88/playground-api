@@ -25,12 +25,11 @@ jobs:
     - run: npm ci
     - run: npm test
     
-  create_publish_docker:
+  create_release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
 
     steps:
       - name: 'Checkout source code'
@@ -47,22 +46,30 @@ jobs:
         uses: WyriHaximus/github-action-next-semvers@v1
         with:
           version: ${{ steps.currenttag.outputs.tag }}
-      
+
       - name: Create Release
         id: create_release
-        uses: actions/create-release@latest
+        uses: nickatnight/releases-action@v3
+        with:
+          branch: "main"
+          prerelease: true
+          tag: ${{ steps.semvers.outputs.v_patch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.semvers.outputs.v_patch }}
-          release_name: Release ${{ steps.semvers.outputs.v_patch }}
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
-          draft: false
-          prerelease: true
+
+    outputs:
+      tag: ${{ steps.create_release.outputs.release_tag }}
       
+      
+  build_publish_docker:
+    needs: create_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    env:
+      RELEASE_TAG: ${{ needs.create-release.outputs.release_tag }}
+    steps:
       - name: Log in to the Container registry
         uses: docker/login-action@v2.1.0
         with:
@@ -76,7 +83,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            ${{ steps.semvers.outputs.v_patch }}
+            ${{RELEASE_TAG}}
 
       - name: Build and publish Docker image 
         uses: docker/build-push-action@v3.2.0
@@ -86,11 +93,22 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           
-      - name: Rollback Release
-        if: failure()
-        uses: author/action-rollback@1.0.0
-        with:
-          tag: ${{steps.semvers.outputs.v_patch }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+  rollback_release:
+   needs: [create_release, build_publish_docker]
+   env:
+      RELEASE_TAG: ${{ needs.create-release.outputs.release_tag }}
+   if: always()
+   runs-on: ubuntu-latest
+   permissions:
+     contents: write
+     packages: write
+   steps:
+     - name: Rollback Release
+       if: failure()
+       uses: author/action-rollback@1.0.0
+       with:
+         tag: ${{RELEASE_TAG}}
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
