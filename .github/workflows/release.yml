@@ -83,7 +83,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            ${{RELEASE_TAG}}
+            ${{ env.RELEASE_TAG }}
 
       - name: Build and publish Docker image 
         uses: docker/build-push-action@v3.2.0
@@ -108,7 +108,7 @@ jobs:
        if: failure()
        uses: author/action-rollback@1.0.0
        with:
-         tag: ${{RELEASE_TAG}}
+         tag: ${{ env.RELEASE_TAG }}
        env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
