@@ -70,7 +70,8 @@ jobs:
         with:
           task-definition: .aws/task_definition.json
           container-name: playground-api
-          image: $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          # image: $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          image: 800535513774.dkr.ecr.us-east-1.amazonaws.com/playground-api:v0.0.7
 
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
