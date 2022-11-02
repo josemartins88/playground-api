@@ -58,3 +58,25 @@ jobs:
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      
+      - name: Render Amazon ECS task definition
+        env:
+            REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            REPOSITORY: playground-api
+            IMAGE_TAG: ${{ steps.branch-name.outputs.current_branch }}
+        id: render-web-container
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .aws/task_definition.json
+          container-name: playground-api
+          # image: $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          image: 800535513774.dkr.ecr.us-east-1.amazonaws.com/playground-api:v0.0.7
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+          service: playground-api-service
+          cluster: playground-api-cluster
+          wait-for-service-stability: true
